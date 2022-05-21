@@ -1,0 +1,101 @@
+Sonny Ji
+ECE335
+Homework #3
+
+Output:
+	gcc ECE335_HW3.s
+	./a.exe
+	10000 x ij takes 4734.00 ms
+	10000 x ji takes 10656.00 ms
+	gcc ECE335_HW3_Og.s
+	./a.exe
+	10000 x ij takes 1562.00 ms
+	10000 x ji takes 4780.00 ms
+This is interesting because the gcc optimization flag itself helps to reduce the time required for each function.
+
+Unoptimized:
+	copyij:
+		pushq	%rbp
+		.seh_pushreg	%rbp
+		movq	%rsp, %rbp
+		.seh_setframe	%rbp, 0
+		subq	$16, %rsp
+		.seh_stackalloc	16
+		.seh_endprologue
+		movq	%rcx, 16(%rbp)
+		movq	%rdx, 24(%rbp)
+		movl	$0, -4(%rbp)
+		jmp	.L16
+
+	copyji:
+		pushq	%rbp
+		.seh_pushreg	%rbp
+		movq	%rsp, %rbp
+		.seh_setframe	%rbp, 0
+		subq	$16, %rsp
+		.seh_stackalloc	16
+		.seh_endprologue
+		movq	%rcx, 16(%rbp)
+		movq	%rdx, 24(%rbp)
+		movl	$0, -4(%rbp)
+		jmp	.L21
+
+Optimized:
+	copyij:
+		.seh_endprologue
+		movq	%rcx, %r11
+		movq	%rdx, %r10
+		movl	$0, %r9d
+		jmp	.L2
+
+	copyji:
+		.seh_endprologue
+		movq	%rcx, %r11
+		movq	%rdx, %r10
+		movl	$0, %r9d
+		jmp	.L8
+
+The unoptimized and optimized versions of the functions clearly have significantly different speeds, if only from the amount of lines alone.
+	This is also demonstrated by the existence of pushq, other push and set functions, and a stack allocation function in the unoptimized code.
+	Since I am timing the function immediately before and after the function call, the stack pushing and allocation is lumped in with the function time for the unoptimized version, but handled by other functions in the optimized version.
+As for the differences in performance, both functions have literally the same code in assembly. However, the jump locations are different:
+	copyij for the optimized version jumps to L2, which leads to: 
+		.L3:
+			movslq	%r9d, %rax
+			imulq	$2000, %rax, %rax
+			leaq	(%r11,%rax), %r8
+			addq	%r10, %rax
+			movslq	%edx, %rcx
+			movl	(%r8,%rcx,4), %r8d
+			movl	%r8d, (%rax,%rcx,4)
+			addl	$1, %edx
+		.L4:
+			cmpl	$499, %edx
+			jle	.L3
+			addl	$1, %r9d
+		.L2:
+			cmpl	$499, %r9d
+			jg	.L6
+			movl	$0, %edx
+			jmp	.L4
+	But copyji moves to L8, which leads to:
+		.L9:
+			movslq	%edx, %rax
+			imulq	$2000, %rax, %rax
+			leaq	(%r11,%rax), %r8
+			addq	%r10, %rax
+			movslq	%r9d, %rcx
+			movl	(%r8,%rcx,4), %r8d
+			movl	%r8d, (%rax,%rcx,4)
+			addl	$1, %edx
+		.L10:
+			cmpl	$499, %edx
+			jle	.L9
+			addl	$1, %r9d
+		.L8:
+			cmpl	$499, %r9d
+			jg	.L12
+			movl	$0, %edx
+			jmp	.L10
+	The only noticeable difference is the swapping of registers %r9d and %edx in L3 and L9 respectively.
+	A difference in argument registers may not have a significant impact, but since %r9d is set by the second-called function and %edx is set by the first-called function, the so copyji has to jump more times to increment i and j versus copyij.

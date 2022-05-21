@@ -1,0 +1,35 @@
+Sonny Ji
+ECE335
+Homework #1
+
+Output:
+	Unsigned (0...0 0011 0111 1100 1001) [0x 00 00 37 c9] c9 37 00 00
+	Signed negative (1...1 1100 1000 0011 0111) [0x ff ff c8 37] 37 c8 ff ff
+	Float (0100 0110 0101 1111 0010 0100 0000 0000) [0x 46 5f 24 00] 00 24 5f 46
+	0 (0) -> 0
+	1 (1) -> 1
+	2 (0) -> 0
+	3 (1) -> 1
+	4 (1) -> 1
+	170 (10101010) (0) -> 0
+	85 (01010101) (1) -> 1
+
+For the unsigned version, the output is 0x c9 37 00 00, but because Windows is little endian, the byte groups should be flipped, so the actual number is 0x 00 00 37 c9.
+	This translates to  0000 0000  0000 0000  0011 0111  1100 1001, which then translates to 1 + 8 + 64 + 128 + 256 + 512 + 1024 + 4096 + 8192 = 14281.
+For the signed negative version, the output is 0x 37 c8 ff ff, which flips to become 0x ff ff c8 37.
+	This translates to  1111 1111  1111 1111  1100 1000  0011 0111. But since this is negative, it's in two's complement form, so we must flip the bits and add 1.
+	0000 0000  0000 0000  0011 0111  1100 1001 is the version translated from two's complement. This is the same as the binary for the unsigned representation, and thus, also 14281.
+	But since it came from a two's complement number, it's also negative, thus -14281.
+For the floating point version, the output is 0x 00 24 5f 46, which flips to become 0x 46 5f 24 00.
+	This translates to 0100 0110  0101 1111  0010 0100  0000 0000, but since it's a floating point number, it must be interpreted as such.
+	Sign: [0]
+	Exponent: [100 0110  0]
+	Mantissa: [101 1111  0010 0100  0000 0000]
+	The exponent with bias becomes (4 + 8 + 128) - (128 - 1) = 13.
+	Thus the mantissa should be multiplied by 2^13.
+	The mantissa, since it's fractional binary, becomes 1/2 + 1/8 + 1/16 + 1/32 + 1/64 + 1/128 + 1/1024 + 1/8192 = 6089/8192​.
+	This then gets 1 added to it, becoming (6089 + 8192)/8192, and then is multiplied by 2^13, or 8192.
+	This becomes 6089 + 8192 = 14281.
+
+For problem 2, the input number is just ANDed with a number where all the odd binary digits are 1.
+	This means that if there is any odd binary digit which is 1 in the input, the AND results in a true and returns a 1.

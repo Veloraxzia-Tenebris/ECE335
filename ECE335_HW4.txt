@@ -1,0 +1,17 @@
+Sonny Ji
+ECE335
+Homework #4
+
+Example output for single loop:
+	combine3 x 10,000 takes 2015.00 ms
+	combine5 x 10,000 takes 94.00 ms
+	combine7 x 10,000 takes 47.00 ms
+
+Output of the average of 10 loops:
+	combine3 takes 1926.80 ms after a 50 run average
+	combine5 takes 90.64 ms after a 50 run average
+	combine7 takes 64.70 ms after a 50 run average
+
+combine3 simply multiplies the elements of the input matrix together without any loop unrolling. This is taken as a baseline since no optimization techniques have been applied.
+combine5 unrolls the loop in a 2 x 1 manner, meaning both i and i+1 are calculated at the same time, while also using a local accumulator. This significantly reduces the time required to run the function, from 192.68 microseconds to 9.06 microseconds. A 95.30% decrease in time required. The loop unrolling should have resulted in a 50% decrease in time, since it would have halved the amount of operations on the critical path, but it's clear that the time reduction is much greater than that. That can be attributed to using a local accumulator instead of writing to memory every loop.
+combine7 unrolls the loop using a local accumulator in a 2 x 1a manner, which is a 2 x 1 unrolling having undergone a reassociation. This means that the multiplications have been grouped differently such that the array data are multiplied first, before being multiplied with the accumulator. This further halves the amount of operations on the critical path by shifting the data multiplication to immediately after the data is loaded from memory, and then multiplying the result with the accumulator whenever the array multiplication finishes. However, since loading and multiplying the array data still takes some clock cycles, the CPU must wait for that to finish before continuing on to the next loop. So, while the time decrease isn't exactly 50%, it's certainly significant, being a 28.62% decrease in time required.
